@@ -1,8 +1,11 @@
 package com.app.respuestas.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import com.app.respuestas.clients.PreguntasFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpStatus;
@@ -55,13 +58,16 @@ public class RespuestaController {
 	@Autowired
 	EstadisticaFeignClient eClient;
 
+	@Autowired
+	PreguntasFeignClient preguntasClient;
+
 //  ****************************	RESPUESTAS	***********************************  //
 
 	// CREAR LISTA DE RESPUESTAS
 	@PostMapping("/respuestas/proyecto/{idProyecto}/lista")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public Boolean crearListaRespuestas(@PathVariable("idProyecto") Integer idProyecto,
-			@RequestBody @Validated List<Respuestas> listaRespuestas) {
+										@RequestBody @Validated List<Respuestas> listaRespuestas) {
 		if (cbFactory.create("respuestas").run(() -> prClient.existCodigoProyecto(idProyecto),
 				e -> encontrarProyecto(idProyecto, e))) {
 			rServices.creaRespuestasTotal(listaRespuestas);
@@ -96,8 +102,8 @@ public class RespuestaController {
 	@GetMapping("/respuestas/ver/todas/username/{idProyecto}")
 	@ResponseStatus(code = HttpStatus.OK)
 	public List<Respuestas> verRespuestasUsuario(@PathVariable("idProyecto") Integer idProyecto,
-			@RequestParam(value = "username") String username,
-			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
+												 @RequestParam(value = "username") String username,
+												 @RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
 		if (cbFactory.create("respuestas").run(() -> prClient.existCodigoProyecto(idProyecto),
 				e -> encontrarProyecto(idProyecto, e))) {
 			if (rServices.existIdFormularioUsername(idProyecto, formulario, username))
@@ -111,8 +117,8 @@ public class RespuestaController {
 	@GetMapping("/respuestas/ver/una/username/{idProyecto}")
 	@ResponseStatus(code = HttpStatus.OK)
 	public Respuestas verRespuestasUsuario(@PathVariable("idProyecto") Integer idProyecto,
-			@RequestParam("username") String username, @RequestParam("numeroPregunta") Integer numeroPregunta,
-			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
+										   @RequestParam("username") String username, @RequestParam("numeroPregunta") Integer numeroPregunta,
+										   @RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
 		if (cbFactory.create("respuestas").run(() -> prClient.existCodigoProyecto(idProyecto),
 				e -> encontrarProyecto(idProyecto, e))) {
 			if (rServices.existIdNumeroFormularioUsername(idProyecto, numeroPregunta, formulario, username))
@@ -126,8 +132,8 @@ public class RespuestaController {
 	@GetMapping("/respuestas/ver/todas/pregunta/proyecto/{idProyecto}")
 	@ResponseStatus(code = HttpStatus.OK)
 	public List<Respuestas> verRespuestasPreguntaProyecto(@PathVariable("idProyecto") Integer idProyecto,
-			@RequestParam("numeroPregunta") Integer numeroPregunta,
-			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
+														  @RequestParam("numeroPregunta") Integer numeroPregunta,
+														  @RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
 		if (cbFactory.create("respuestas").run(() -> prClient.existCodigoProyecto(idProyecto),
 				e -> encontrarProyecto(idProyecto, e))) {
 			if (rServices.existIdFormularioNumero(idProyecto, formulario, numeroPregunta))
@@ -142,7 +148,7 @@ public class RespuestaController {
 	@GetMapping("/respuestas/proyecto/{idProyecto}")
 	@ResponseStatus(code = HttpStatus.OK)
 	public List<Respuestas> verRespuestasProyecto(@PathVariable("idProyecto") Integer idProyecto,
-			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
+												  @RequestParam(value = "formulario", defaultValue = "1") Integer formulario) {
 		if (cbFactory.create("respuestas").run(() -> prClient.existCodigoProyecto(idProyecto),
 				e -> encontrarProyecto(idProyecto, e))) {
 			if (rRepository.existsByIdProyectoAndFormulario(idProyecto, formulario))
@@ -154,8 +160,35 @@ public class RespuestaController {
 
 	@GetMapping("/respuestas/proyecto/{idProyecto}/{formulario}/exists")
 	public Boolean respuestasProyectoExisten(@PathVariable("idProyecto") Integer idProyecto,
-			@PathVariable("formulario") Integer formulario) {
+											 @PathVariable("formulario") Integer formulario) {
 		return rServices.existeProyectoFormulario(idProyecto, formulario);
+	}
+
+	// Obtener Kano
+	@GetMapping("/respuestas/obtener/todas")
+	@ResponseStatus(code = HttpStatus.OK)
+	public HashMap<String, List<List<String>>>  obtenerTodasRespuestas(){
+		List<Respuestas> listaRespuestas = rRepository.findAll();
+		HashMap<String, List<List<String>>> respuestasProyectos = new HashMap<>();
+		listaRespuestas.forEach(lr -> {
+			List<String> lImpacto = preguntasClient.obtenerImpactoPreguntas(lr.getIdProyecto(),lr.getNumeroPregunta());
+			List<String> lOpcionesRespuesta = lr.getRespuestas();
+			String nombre = prClient.obtenerNombre(lr.getIdProyecto());
+			List<String> respuesta = new ArrayList<>();
+			lOpcionesRespuesta.forEach(x -> {
+				respuesta.add(lImpacto.get(Integer.parseInt(x)));
+			});
+			if(respuestasProyectos.containsKey(nombre)){
+                List<List<String>> rP = respuestasProyectos.get(nombre);
+                rP.add(respuesta);
+                respuestasProyectos.put(nombre,rP);
+			} else {
+                List<List<String>> rP = new ArrayList<>();
+                rP.add(respuesta);
+                respuestasProyectos.put(nombre,rP);
+			}
+		});
+        return respuestasProyectos;
 	}
 
 	@DeleteMapping("/respuestas/eliminar/proyecto/formulario/{idProyecto}")

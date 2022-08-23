@@ -18,4 +18,7 @@ public interface ProyectosFeignClient {
 	
 	@GetMapping("/proyectos/gamificacion/ver-estado/{codigoProyecto}")
 	public Boolean verEstadoGamificacion(@PathVariable("codigoProyecto") Integer codigoProyecto);
+
+	@GetMapping("/proyectos/nombre/{codigoProyecto}")
+	public String obtenerNombre(@PathVariable("codigoProyecto") Integer codigoProyecto);
 }
