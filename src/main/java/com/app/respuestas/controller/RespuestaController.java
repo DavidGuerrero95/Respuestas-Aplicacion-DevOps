@@ -164,6 +164,7 @@ public class RespuestaController {
 		return rServices.existeProyectoFormulario(idProyecto, formulario);
 	}
 
+	// Obtener Kano
 	@GetMapping("/respuestas/obtener/todas")
 	@ResponseStatus(code = HttpStatus.OK)
 	public HashMap<String, List<List<String>>>  obtenerTodasRespuestas(){
