@@ -197,6 +197,14 @@ public class RespuestaController {
 		return rRepository.findAll();
 	}
 
+	@DeleteMapping("/respuestas/eliminar-preguntas-problema")
+	public Boolean eliminarPreguntasProblema(){
+		rRepository.deleteByIdProyecto(2);
+		rRepository.deleteByIdProyecto(6);
+		rRepository.deleteByIdProyecto(17);
+		return true;
+	}
+
 	@DeleteMapping("/respuestas/eliminar/proyecto/formulario/{idProyecto}")
 	public Boolean eliminarRespuestasProyectoFormulario(@PathVariable("idProyecto") Integer idProyecto,
 			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) throws IOException {
