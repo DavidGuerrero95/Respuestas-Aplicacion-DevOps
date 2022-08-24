@@ -191,6 +191,12 @@ public class RespuestaController {
         return respuestasProyectos;
 	}
 
+	@GetMapping("/respuestas/ver-todas")
+	@ResponseStatus(code = HttpStatus.OK)
+	public List<Respuestas> verTodasRespuestas(){
+		return rRepository.findAll();
+	}
+
 	@DeleteMapping("/respuestas/eliminar/proyecto/formulario/{idProyecto}")
 	public Boolean eliminarRespuestasProyectoFormulario(@PathVariable("idProyecto") Integer idProyecto,
 			@RequestParam(value = "formulario", defaultValue = "1") Integer formulario) throws IOException {
