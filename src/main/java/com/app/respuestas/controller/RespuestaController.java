@@ -167,9 +167,9 @@ public class RespuestaController {
 	// Obtener Kano
 	@GetMapping("/respuestas/obtener/todas")
 	@ResponseStatus(code = HttpStatus.OK)
-	public HashMap<String, List<List<String>>>  obtenerTodasRespuestas(){
+	public HashMap<String, HashMap<Integer, List<List<String>>>>  obtenerTodasRespuestas(){
 		List<Respuestas> listaRespuestas = rRepository.findAll();
-		HashMap<String, List<List<String>>> respuestasProyectos = new HashMap<>();
+		HashMap<String, HashMap<Integer, List<List<String>>>> respuestasProyectos = new HashMap<>();
 		listaRespuestas.forEach(lr -> {
 			List<String> lImpacto = preguntasClient.obtenerImpactoPreguntas(lr.getIdProyecto(),lr.getNumeroPregunta());
 			List<String> lOpcionesRespuesta = lr.getRespuestas();
@@ -179,13 +179,24 @@ public class RespuestaController {
 				respuesta.add(lImpacto.get(Integer.parseInt(x)));
 			});
 			if(respuestasProyectos.containsKey(nombre)){
-                List<List<String>> rP = respuestasProyectos.get(nombre);
-                rP.add(respuesta);
-                respuestasProyectos.put(nombre,rP);
+				HashMap<Integer, List<List<String>>> hM = respuestasProyectos.get(nombre);
+				if(hM.containsKey(lr.getNumeroPregunta())){
+					List<List<String>> rP = hM.get(lr.getNumeroPregunta());
+					rP.add(respuesta);
+					hM.put(lr.getNumeroPregunta(),rP);
+					respuestasProyectos.put(nombre,hM);
+				} else{
+					List<List<String>> rP = new ArrayList<>();
+					rP.add(respuesta);
+					hM.put(lr.getNumeroPregunta(),rP);
+					respuestasProyectos.put(nombre,hM);
+				}
 			} else {
-                List<List<String>> rP = new ArrayList<>();
-                rP.add(respuesta);
-                respuestasProyectos.put(nombre,rP);
+				HashMap<Integer, List<List<String>>> hM = new HashMap<>();
+				List<List<String>> rP = new ArrayList<>();
+				rP.add(respuesta);
+				hM.put(lr.getNumeroPregunta(),rP);
+                respuestasProyectos.put(nombre,hM);
 			}
 		});
         return respuestasProyectos;
