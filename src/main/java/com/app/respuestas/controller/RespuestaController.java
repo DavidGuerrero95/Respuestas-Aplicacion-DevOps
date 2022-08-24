@@ -197,6 +197,7 @@ public class RespuestaController {
 		return rRepository.findAll();
 	}
 
+	// Funciones para arreglar problemas
 	@DeleteMapping("/respuestas/eliminar-preguntas-problema")
 	public Boolean eliminarPreguntasProblema(){
 		rRepository.deleteByIdProyecto(2);
