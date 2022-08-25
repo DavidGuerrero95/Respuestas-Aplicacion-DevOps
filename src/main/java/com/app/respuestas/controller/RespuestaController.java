@@ -2,6 +2,7 @@ package com.app.respuestas.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -172,6 +173,7 @@ public class RespuestaController {
 		HashMap<String, HashMap<Integer, List<List<String>>>> respuestasProyectos = new HashMap<>();
 		listaRespuestas.forEach(lr -> {
 			List<String> lImpacto = preguntasClient.obtenerImpactoPreguntas(lr.getIdProyecto(),lr.getNumeroPregunta());
+			Collections.reverse(lImpacto);
 			List<String> lOpcionesRespuesta = lr.getRespuestas();
 			String nombre = prClient.obtenerNombre(lr.getIdProyecto());
 			List<String> respuesta = new ArrayList<>();
